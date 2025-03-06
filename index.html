@@ -1,40 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Bikewatching</title>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bikewatching</title>
+  <link rel="stylesheet" href="global.css">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <link rel="stylesheet" href="map.css">
+</head>
+<body>
+  <h1>🚴🏼‍♀️ Bikewatching</h1>
 
-    <!-- Mapbox CSS (required for map visuals) -->
-    <link
-      href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css"
-      rel="stylesheet"
-    />
-    <!-- Our own global styles -->
-    <link rel="stylesheet" href="global.css" />
-  </head>
-  <body>
-    <header>
-      <h1>🚴 Bikewatching</h1>
-      <label for="time-slider">Filter by time:</label>
-      <input id="time-slider" type="range" min="-1" max="1440" value="-1" />
-      <time id="selected-time"></time>
-      <em id="any-time">(any time)</em>
-    </header>
+  <label>
+    Filter by time:
+    <input type="range" id="time-slider" min="-1" max="1440" value="-1">
+    <time id="selected-time"></time>
+    <em id="any-time">(any time)</em>
+  </label>
 
-    <!-- The map container. We'll overlay an SVG inside it for the station circles. -->
-    <div id="map">
-      <svg></svg>
-    </div>
+  <div id="map">
+    <svg></svg>
+  </div>
 
-    <!-- Simple legend for circle colors -->
-    <div class="legend">
-      <div><span class="swatch departures"></span> More departures</div>
-      <div><span class="swatch balanced"></span> Balanced</div>
-      <div><span class="swatch arrivals"></span> More arrivals</div>
-    </div>
+  <div class="legend">
+    <div style="--departure-ratio: 1">More departures</div>
+    <div style="--departure-ratio: 0.5">Balanced</div>
+    <div style="--departure-ratio: 0">More arrivals</div>
+  </div>
 
-    <!-- Main JS as an ES module -->
-    <script type="module" src="map.js"></script>
-  </body>
+  <!-- Load Mapbox GL JS -->
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+
+  <!-- Load D3.js from CDN -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <!-- Load your custom map initialization script -->
+  <script src="map.js"></script>
+</body>
 </html>

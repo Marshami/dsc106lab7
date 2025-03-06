@@ -1,0 +1,34 @@
+body {
+    font: 100%/1.5 system-ui, sans-serif;
+    display: flex;
+    flex-flow: column;
+    max-width: 80em;
+    min-height: 100vh;
+    box-sizing: border-box;
+    margin: auto;
+    padding: 1em;
+  }
+  
+  #map {
+    width: 100%;
+    height: 100%;
+  }
+  
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  
+  input[type="range"] {
+    width: 200px;
+  }
+  
+  time {
+    font-weight: bold;
+  }
+  
+  em {
+    font-style: italic;
+    color: gray;
+  }  

@@ -30,13 +30,12 @@ body {
     color: gray;
     font-style: italic;
   }
-
-
+  
+  /* Define color variables and circle color mixing */
   :root {
     --color-departures: steelblue;
     --color-arrivals: darkorange;
   }
-  
   
   circle {
     --color: color-mix(
@@ -46,7 +45,7 @@ body {
     );
     fill: var(--color);
   }
-
+  
   .legend {
     display: flex;
     gap: 1px;
@@ -56,20 +55,19 @@ body {
   .legend > div {
     flex: 1;
     text-align: center;
-    padding: 5px 20px; 
+    padding: 5px 20px;
     color: white;
     font-size: 14px;
-    
+  
     --color: color-mix(
       in oklch,
       var(--color-departures) calc(100% * var(--departure-ratio)),
       var(--color-arrivals)
     );
-  
     background: var(--color);
   }
-
+  
   input[type="range"] {
-    width: 300px;  
-    max-width: 100%;  
-}
+    width: 300px;
+    max-width: 100%;
+  }  

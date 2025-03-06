@@ -1,51 +1,62 @@
-/* Make sure the map container has non-zero size */
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-  }
-  
-  body {
-    font: 100%/1.5 system-ui, sans-serif;
-    display: flex;
-    flex-flow: column;
-    max-width: 80em;
-    margin: auto;
-    padding: 1em;
-    box-sizing: border-box;
-  }
-  
-  /* Header layout: "Bikewatching" on the left, slider/time on the right */
-  header {
-    display: flex;
-    flex-direction: row;
-    align-items: baseline;
-    gap: 1em;
-  }
-  
-  /* Let the map fill what's left of the viewport */
-  #map {
-    position: relative; 
-    width: 100%;
-    flex: 1; /* let it expand to fill remaining vertical space */
-    margin-top: 1em;
-    border: 1px solid #ccc;
-  }
-  
-  /* Our overlay SVG is absolutely positioned to match map panning */
-  #map svg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0; 
-    bottom: 0;
-    pointer-events: none; /* let mouse drag the map, not the SVG */
-  }
-  
-  /* Hide or style the time label if no filter is selected */
-  #any-time {
-    color: gray;
-    font-style: italic;
-  }
-  
-  /* You can style the slider/time elements further if you like */  
+/* Reset margins/padding and ensure full height */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* Main body container */
+body {
+  font: 100%/1.5 system-ui, sans-serif;
+  display: flex;
+  flex-flow: column;
+  max-width: 80em;
+  margin: auto;
+  padding: 1em;
+  box-sizing: border-box;
+}
+
+/* Header layout (title + slider/time) */
+header {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 1em;
+}
+
+/* The map container flex: 1 -> fills leftover space */
+#map {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  margin-top: 1em;
+  border: 1px solid #ccc; /* optional visual border */
+}
+
+/* Absolutely position the SVG so it follows map's panning/zooming */
+#map svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none; /* let the user drag the map, not the SVG */
+}
+
+/* Show or hide the “(any time)” label */
+#any-time {
+  color: gray;
+  font-style: italic;
+}
+
+/* Let circles show tooltips on hover (override pointer-events: none) */
+circle {
+  pointer-events: auto;
+  transition: fill-opacity 0.3s ease;
+}
+
+/* Example circle styling (during hover) */
+circle:hover {
+  fill-opacity: 1.0;
+}

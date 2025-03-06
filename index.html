@@ -2,27 +2,43 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>DSC106 Lab 7: Bikewatching</title>
-    <!-- No direct mapbox <script>, because we will import it as an ESM in map.js -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DSC 106 Lab 7: Bikewatching</title>
+
+    <!-- Mapbox GL JS CSS (needed for map display) -->
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+
+    <!-- Our global styles -->
     <link rel="stylesheet" href="global.css" />
+
+    <!-- Optionally, add a favicon (change emoji to your preference) -->
+    <!--
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="assets/favicon.svg"
+    />
+    -->
   </head>
   <body>
     <header>
       <h1>Bikewatching</h1>
+      <!-- Filter by time -->
       <label for="time-slider">Filter by time:</label>
       <input id="time-slider" type="range" min="-1" max="1440" value="-1" />
       <time id="selected-time"></time>
       <em id="any-time">(any time)</em>
     </header>
 
-    <!-- The map container -->
+    <!-- The map container.  We'll overlay an SVG inside it. -->
     <div id="map">
-      <!-- We'll inject an <svg> overlay in map.js for stations, etc. -->
       <svg></svg>
     </div>
 
-    <!-- Our main JavaScript. We use "type=module" to allow ESM imports -->
+    <!-- Load our main script as an ES module -->
     <script type="module" src="map.js"></script>
   </body>
 </html>

@@ -1,11 +1,11 @@
-/* Reset page margins and ensure height */
+/* Reset page margins; occupy full height */
 html, body {
     margin: 0;
     padding: 0;
     height: 100%;
   }
   
-  /* Main container */
+  /* Overall container */
   body {
     font: 100%/1.5 system-ui, sans-serif;
     display: flex;
@@ -16,61 +16,60 @@ html, body {
     box-sizing: border-box;
   }
   
-  /* Title + slider/time row */
+  /* Header row for H1, slider, and time display */
   header {
     display: flex;
     gap: 1em;
     align-items: baseline;
   }
   
-  /* The map container.  flex: 1 so it fills leftover vertical space */
+  /* Map container (flex: 1 so it stretches vertically) */
   #map {
     position: relative;
     flex: 1;
     width: 100%;
     margin-top: 1em;
-    border: 1px solid #ccc; /* for clarity */
+    border: 1px solid #ccc;
   }
   
-  /* Absolutely position the SVG overlay so it follows map panning */
+  /* Absolutely position the SVG so it matches map panning */
   #map svg {
     position: absolute;
-    top: 0; left: 0; bottom: 0; right: 0;
-    pointer-events: none; /* let user drag the map */
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none; /* Let user drag the map */
   }
   
-  /* If slider == -1 => show (any time) text, otherwise show time */
+  /* If timeFilter == -1 => show (any time), else show time */
   #any-time {
     color: gray;
     font-style: italic;
   }
   
-  /* Let circles receive hover/tooltip events despite pointer-events none on svg */
+  /* Circles can have hover, so override pointer-events for them */
   circle {
     pointer-events: auto;
   }
   
-  /* Legend styling */
+  /* Basic legend styling */
   .legend {
     display: flex;
-    gap: 1.5em;
+    gap: 1em;
     margin-top: 1em;
     align-items: center;
-    font-size: 0.9rem;
   }
   .legend > div {
     display: flex;
-    gap: 0.5em;
+    gap: 0.4em;
     align-items: center;
   }
   .swatch {
     display: inline-block;
-    width: 1em; height: 1em;
+    width: 1em;
+    height: 1em;
     border-radius: 50%;
     border: 1px solid #ccc;
   }
-  
-  /* Match our circle color categories */
   .swatch.departures { background-color: steelblue; }
-  .swatch.balanced   { background-color: purple;   }
-  .swatch.arrivals   { background-color: orange;   }  
+  .swatch.balanced   { background-color: purple; }
+  .swatch.arrivals   { background-color: orange; }
+  

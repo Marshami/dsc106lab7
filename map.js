@@ -1,39 +1,41 @@
 ////////////////////////////////////////////////////////////////////////////////
-// 1) Import ES Modules for Mapbox + D3
+// 1) Import ES modules for Mapbox + D3
 ////////////////////////////////////////////////////////////////////////////////
 import mapboxgl from 'https://cdn.jsdelivr.net/npm/mapbox-gl@2.15.0/+esm';
 import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm';
 
 ////////////////////////////////////////////////////////////////////////////////
-// 2) Initialize Mapbox (replace with your real token!)
+// 2) Initialize Mapbox
+//    (Using your provided token — if you want privacy, replace this with a placeholder)
 ////////////////////////////////////////////////////////////////////////////////
-mapboxgl.accessToken = 'pk.eyJ1Ijoia2VzZW5udW1hIiwiYSI6ImNtN3d3ZTM1eTBhY2MybW9xczNycWFncmwifQ.XARtRgsunDu3KIil4VoCng';
+mapboxgl.accessToken =
+  'pk.eyJ1Ijoia2VzZW5udW1hIiwiYSI6ImNtN3d3ZTM1eTBhY2MybW9xczNycWFncmwifQ.XARtRgsunDu3KIil4VoCng';
 
 const map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v12',
-  center: [-71.09415, 42.36027], // Boston
+  center: [-71.09415, 42.36027], // Boston area
   zoom: 12
 });
 
-// Wait for map to load
+// Wait for map to finish loading
 map.on('load', onMapLoad);
 
 ////////////////////////////////////////////////////////////////////////////////
-// 3) Main logic: Bike lanes, stations, circles sized & colored, time filter
+// 3) Main logic after map loads
 ////////////////////////////////////////////////////////////////////////////////
 async function onMapLoad() {
   // --------------------------------------------------------------------------
-  // A) Add Boston + Cambridge bike lanes as "line" layers
+  // A) Add Boston & Cambridge bike lanes as line layers
   // --------------------------------------------------------------------------
-  map.addSource('boston_lines', {
+  map.addSource('boston_lanes', {
     type: 'geojson',
     data: 'https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::existing-bike-network-2022.geojson'
   });
   map.addLayer({
-    id: 'boston-lanes',
+    id: 'bike-lanes-boston',
     type: 'line',
-    source: 'boston_lines',
+    source: 'boston_lanes',
     paint: {
       'line-color': 'green',
       'line-width': 3,
@@ -41,14 +43,14 @@ async function onMapLoad() {
     }
   });
 
-  map.addSource('cambridge_lines', {
+  map.addSource('cambridge_lanes', {
     type: 'geojson',
     data: 'https://raw.githubusercontent.com/cambridgegis/cambridgegis_data/main/Recreation/Bike_Facilities/RECREATION_BikeFacilities.geojson'
   });
   map.addLayer({
-    id: 'cambridge-lanes',
+    id: 'bike-lanes-cambridge',
     type: 'line',
-    source: 'cambridge_lines',
+    source: 'cambridge_lanes',
     paint: {
       'line-color': 'green',
       'line-width': 3,
@@ -57,17 +59,16 @@ async function onMapLoad() {
   });
 
   // --------------------------------------------------------------------------
-  // B) Fetch station + traffic data
+  // B) Load station & traffic data
   // --------------------------------------------------------------------------
-  // 1) Station data (JSON)
+  // DSC106 station JSON has: { "Number": "A32000", "NAME": "...", "Lat": 42.1234, "Long": -71.1234, ... }
   const stationData = await d3.json('https://dsc106.com/labs/lab07/data/bluebikes-stations.json');
-  let stations = stationData.data.stations;
+  let stations = stationData.data.stations; // array
 
-  // 2) Traffic data (CSV, ~260K rows)
+  // Large CSV: 260k rows
   let trips = await d3.csv(
     'https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv',
     row => {
-      // Convert times to Date
       row.started_at = new Date(row.started_at);
       row.ended_at   = new Date(row.ended_at);
       return row;
@@ -75,35 +76,37 @@ async function onMapLoad() {
   );
 
   // --------------------------------------------------------------------------
-  // C) Create an SVG overlay for station circles
+  // C) Create an SVG overlay to show circles for each station
   // --------------------------------------------------------------------------
   const svg = d3.select('#map').select('svg');
 
-  // Bind data => circles
+  // Bind station data => circles
+  // Use station.Number as key (since that matches trip's start_station_id / end_station_id)
   const circles = svg.selectAll('circle')
-    .data(stations, d => d.short_name)
+    .data(stations, d => d.Number)
     .enter()
     .append('circle')
     .attr('r', 5)
-    .attr('fill', 'gray')  // temporary, will set actual color later
+    .attr('fill', 'gray')   // we update color in updateScatterPlot
     .attr('stroke', 'white')
     .attr('stroke-width', 1)
-    .attr('fill-opacity', 0.75);
+    .attr('fill-opacity', 0.7);
 
-  // A helper to project station lat/lon to pixel coords
+  // Project lat/lon => pixel coords
   function projectCoords(station) {
-    // depends on station fields: "Lat"/"Long" in the JSON
-    const lon = +station.Long;
-    const lat = +station.Lat;
-    const pt = map.project([lon, lat]);
-    return [pt.x, pt.y];
+    const lon = +station.Long; // capital L per DSC106 dataset
+    const lat = +station.Lat;  // capital L for Lat
+    const point = map.project([lon, lat]);
+    return [point.x, point.y];
   }
 
+  // Keep circles in sync with map panning
   function updatePositions() {
     circles
       .attr('cx', d => projectCoords(d)[0])
       .attr('cy', d => projectCoords(d)[1]);
   }
+  // Do initial position + listen for map changes
   updatePositions();
   map.on('move', updatePositions);
   map.on('zoom', updatePositions);
@@ -111,28 +114,29 @@ async function onMapLoad() {
   map.on('moveend', updatePositions);
 
   // --------------------------------------------------------------------------
-  // D) Utilities to compute arrivals/departures + filter by time
+  // D) Helper functions to compute arrivals/departures & filter by time
   // --------------------------------------------------------------------------
   function computeStationTraffic(stations, tripData) {
-    // Tally total departures
-    const depMap = d3.rollup(
+    // Tally total departures by station ID
+    const departuresMap = d3.rollup(
       tripData,
       v => v.length,
       d => d.start_station_id
     );
-    // Tally total arrivals
-    const arrMap = d3.rollup(
+    // Tally total arrivals by station ID
+    const arrivalsMap = d3.rollup(
       tripData,
       v => v.length,
       d => d.end_station_id
     );
-    // Attach arrivals, departures, totalTraffic
+
+    // Attach arrivals, departures, totalTraffic to each station
     return stations.map(station => {
-      const sid = station.short_name; // e.g. "A32000"
-      const dep = depMap.get(sid) || 0;
-      const arr = arrMap.get(sid) || 0;
-      station.departures = dep;
-      station.arrivals   = arr;
+      const sid = station.Number; // e.g. "A32000"
+      const dep = departuresMap.get(sid) || 0;
+      const arr = arrivalsMap.get(sid)   || 0;
+      station.departures   = dep;
+      station.arrivals     = arr;
       station.totalTraffic = dep + arr;
       return station;
     });
@@ -140,16 +144,16 @@ async function onMapLoad() {
 
   function filterTripsByTime(tripData, timeVal) {
     if (timeVal === -1) {
-      // no filtering
+      // no filtering => all trips
       return tripData;
     }
-    // keep only trips that started/ended within 60 min of timeVal
     return tripData.filter(t => {
       const startM = minutesSinceMidnight(t.started_at);
       const endM   = minutesSinceMidnight(t.ended_at);
+      // keep if start or end is within 60 min
       return (
         Math.abs(startM - timeVal) <= 60 ||
-        Math.abs(endM   - timeVal) <= 60
+        Math.abs(endM - timeVal)   <= 60
       );
     });
   }
@@ -158,84 +162,82 @@ async function onMapLoad() {
     return d.getHours() * 60 + d.getMinutes();
   }
 
-  // For circle radius, use a sqrt scale
+  // Sqrt scale for circle radius
   const radiusScale = d3.scaleSqrt()
-    .range([0, 25]); // we’ll set domain dynamically
+    .range([0, 25]); // domain set dynamically
 
-  // For circle color, we define a 3-bin quantize scale: 0 => arrivals, 0.5 => balanced, 1 => departures
+  // 3 discrete color bins for ratio of departures to total
   const colorScale = d3.scaleQuantize()
-    .domain([0, 1])
-    .range(['orange','purple','steelblue']);
+    .domain([0, 1]) // 0 => all arrivals, 1 => all departures
+    .range(['orange','purple','steelblue']); // more arrivals, balanced, more dep
 
   // --------------------------------------------------------------------------
-  // E) Update the circles after user picks a time
+  // E) Update circles when slider changes
   // --------------------------------------------------------------------------
   function updateScatterPlot(timeVal) {
-    // 1) Filter trips
-    const filteredTrips = filterTripsByTime(trips, timeVal);
+    // Filter trip data for ±60 minutes
+    const filtered = filterTripsByTime(trips, timeVal);
 
-    // 2) Recompute station arrivals/departures
-    const updatedStations = computeStationTraffic(stations, filteredTrips);
+    // Recompute arrivals/departures for each station
+    const updatedStations = computeStationTraffic(stations, filtered);
 
-    // 3) Adjust domain for circle radius
+    // Adjust radius scale domain
     const maxTraffic = d3.max(updatedStations, d => d.totalTraffic) || 1;
-    // If user picks a narrower time, we can scale circles up
     if (timeVal === -1) {
       radiusScale.range([0, 25]);
     } else {
-      radiusScale.range([3, 50]);
+      radiusScale.range([3, 50]); // bigger if user filters
     }
     radiusScale.domain([0, maxTraffic]);
 
-    // 4) Update circles: radius + color
     circles
-      .data(updatedStations, d => d.short_name)
-      .join('circle') // ensure we reuse existing circles
+      .data(updatedStations, d => d.Number)
+      .join('circle') // ensure we keep existing circles
       .transition()
-      .duration(250)
+      .duration(300)
       .attr('r', d => radiusScale(d.totalTraffic))
       .attr('fill', d => {
         if (d.totalTraffic === 0) {
-          return 'gray'; // no traffic => no data
+          return 'gray'; // station with no trips in this filter
         }
         const ratio = d.departures / d.totalTraffic; // 0..1
         return colorScale(ratio);
       });
 
-    // 5) Add or update <title> for tooltip
+    // Add or update <title> for a tooltip
     circles.each(function(d){
-      const sel = d3.select(this);
-      sel.selectAll('title').remove();
-      sel.append('title')
+      d3.select(this).selectAll('title').remove();
+      d3.select(this)
+        .append('title')
         .text(`${d.totalTraffic} trips (${d.departures} dep, ${d.arrivals} arr)`);
     });
   }
 
   // --------------------------------------------------------------------------
-  // F) Time slider: hooking up to updateScatterPlot
+  // F) Hook the slider to updateScatterPlot
   // --------------------------------------------------------------------------
-  const timeSlider   = document.getElementById('time-slider');
-  const selectedTime = document.getElementById('selected-time');
-  const anyTime      = document.getElementById('any-time');
+  const slider      = document.getElementById('time-slider');
+  const selectedTim = document.getElementById('selected-time');
+  const anyTimeLbl  = document.getElementById('any-time');
 
-  timeSlider.addEventListener('input', onTimeChange);
+  slider.addEventListener('input', onTimeChange);
   onTimeChange(); // init
 
   function onTimeChange() {
-    const val = +timeSlider.value;
+    const val = +slider.value;
     if (val === -1) {
-      selectedTime.textContent = '';
-      anyTime.style.display = 'inline';
+      selectedTim.textContent = '';
+      anyTimeLbl.style.display = 'inline';
     } else {
-      selectedTime.textContent = formatTime(val);
-      anyTime.style.display = 'none';
+      selectedTim.textContent = formatTime(val);
+      anyTimeLbl.style.display = 'none';
     }
-    // filter + redraw
+    // Recompute & redraw
     updateScatterPlot(val);
   }
 
   function formatTime(minutes) {
-    const date = new Date(0,0,0,0, minutes);
-    return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    const date = new Date(0, 0, 0, 0, minutes);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 }

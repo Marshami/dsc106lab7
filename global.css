@@ -1,3 +1,4 @@
+/* Overall page styling */
 body {
     font: 100%/1.5 system-ui, sans-serif;
     display: flex;
@@ -9,6 +10,7 @@ body {
     padding: 1em;
   }
   
+  /* Header + slider/time arrangement */
   header {
     display: flex;
     gap: 1em;
@@ -16,6 +18,7 @@ body {
     margin-bottom: 10px;
   }
   
+  /* Put label + slider/time on the right if desired */
   label {
     margin-left: auto;
   }
@@ -31,40 +34,32 @@ body {
     font-style: italic;
   }
   
-  /* Define color variables and circle color mixing */
-  :root {
-    --color-departures: steelblue;
-    --color-arrivals: darkorange;
-  }
-  
-  circle {
-    --color: color-mix(
-      in oklch,
-      var(--color-departures) calc(100% * var(--departure-ratio)),
-      var(--color-arrivals)
-    );
-    fill: var(--color);
-  }
-  
+  /* Legend container */
   .legend {
     display: flex;
-    gap: 1px;
+    gap: 1em;
     margin-top: 10px;
+    font-size: 14px;
   }
   
-  .legend > div {
-    flex: 1;
-    text-align: center;
-    padding: 5px 20px;
+  /* Each legend swatch is a small colored block with text */
+  .legend div {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 4px;
     color: white;
-    font-size: 14px;
+  }
   
-    --color: color-mix(
-      in oklch,
-      var(--color-departures) calc(100% * var(--departure-ratio)),
-      var(--color-arrivals)
-    );
-    background: var(--color);
+  .departures {
+    background: steelblue;
+  }
+  .balanced {
+    background: purple;
+  }
+  .arrivals {
+    background: orange;
   }
   
   input[type="range"] {

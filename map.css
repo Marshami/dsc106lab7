@@ -1,3 +1,4 @@
+/* Let html/body fill the entire viewport, then center the #map container */
 html,
 body {
   margin: 0;
@@ -9,6 +10,7 @@ body {
   align-items: center;
 }
 
+/* The main map container, with optional box shadow and rounded corners */
 #map {
   width: 100%;
   height: 100%;
@@ -16,6 +18,7 @@ body {
   border-radius: 8px;
 }
 
+/* Absolutely position our <svg> overlay so it moves with the map */
 #map svg {
   position: absolute;
   top: 0;
@@ -23,17 +26,13 @@ body {
   width: 100%;
   height: 100%;
   z-index: 1;
-  pointer-events: none;
+  pointer-events: none; /* let user interact with the map */
 }
 
+/* Station circle styling (JS will set the fill color) */
 circle {
   fill-opacity: 0.6;
   stroke: white;
   stroke-width: 1;
-  pointer-events: auto;
-}
-
-/* Duplicate pointer-events rule (kept to preserve original code) */
-circle {
-  pointer-events: auto;
+  pointer-events: auto; /* needed for tooltips */
 }

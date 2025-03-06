@@ -8,7 +8,7 @@ import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm';
 // 2) Initialize Mapbox
 ///////////////////////////////////
 //  !!! REPLACE WITH YOUR REAL TOKEN FROM account.mapbox.com !!!
-mapboxgl.accessToken = 'pk.YOUR_MAPBOX_ACCESS_TOKEN';
+mapboxgl.accessToken = 'pk.eyJ1Ijoia2VzZW5udW1hIiwiYSI6ImNtN3d3ZTM1eTBhY2MybW9xczNycWFncmwifQ.XARtRgsunDu3KIil4VoCng';
 
 const map = new mapboxgl.Map({
   container: 'map',

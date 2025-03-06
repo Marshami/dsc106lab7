@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Bikewatching</title>
 
-    <!-- Global CSS, Favicon, Mapbox CSS -->
+    <!-- Global styles + Mapbox CSS -->
     <link rel="stylesheet" href="global.css" />
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
     <link
@@ -17,7 +17,7 @@
   <body>
     <h1>🚴🏼‍♀️ Bikewatching</h1>
 
-    <!-- Time Filter Slider -->
+    <!-- Filter by time slider -->
     <label>
       Filter by time:
       <input
@@ -33,18 +33,18 @@
 
     <!-- Map container -->
     <div id="map">
-      <!-- We'll render station circles on this <svg> overlay via JavaScript -->
+      <!-- We'll overlay circles in this SVG -->
       <svg></svg>
     </div>
 
-    <!-- Discrete color legend -->
+    <!-- Legend with three distinct color swatches -->
     <div class="legend">
       <div class="departures">More departures</div>
       <div class="balanced">Balanced</div>
       <div class="arrivals">More arrivals</div>
     </div>
 
-    <!-- Load Mapbox, then D3, then our main script -->
+    <!-- Load Mapbox, then D3, then our main JS -->
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="map.js"></script>

@@ -1,4 +1,4 @@
-/* Let html/body fill the entire viewport, then center the #map container */
+/* Let html/body fill entire screen, then center the #map container */
 html,
 body {
   margin: 0;
@@ -10,7 +10,9 @@ body {
   align-items: center;
 }
 
-/* The main map container, with optional box shadow and rounded corners */
+/* The main map container: flex:1 would expand it if you want
+   For now, it's 100% width & height with box shadow & rounding
+*/
 #map {
   width: 100%;
   height: 100%;
@@ -18,7 +20,7 @@ body {
   border-radius: 8px;
 }
 
-/* Absolutely position our <svg> overlay so it moves with the map */
+/* Absolutely position our overlay <svg> so it matches the map's panning */
 #map svg {
   position: absolute;
   top: 0;
@@ -26,10 +28,10 @@ body {
   width: 100%;
   height: 100%;
   z-index: 1;
-  pointer-events: none; /* let user interact with the map */
+  pointer-events: none; /* let user drag/zoom the map */
 }
 
-/* Station circle styling (JS will set the fill color) */
+/* Circles for stations: set fill & stroke in JS */
 circle {
   fill-opacity: 0.6;
   stroke: white;

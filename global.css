@@ -1,4 +1,4 @@
-/* Overall page styling */
+/* Basic body layout */
 body {
     font: 100%/1.5 system-ui, sans-serif;
     display: flex;
@@ -10,17 +10,15 @@ body {
     padding: 1em;
   }
   
-  /* Header + slider/time arrangement */
-  header {
-    display: flex;
-    gap: 1em;
-    align-items: baseline;
-    margin-bottom: 10px;
-  }
-  
-  /* Put label + slider/time on the right if desired */
+  /* If you want a separate <header>, you can use it.
+     Currently, we have <h1> + <label> directly in <body>.
+     This label is on the right if we like:
+  */
   label {
     margin-left: auto;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5em;
   }
   
   time {
@@ -38,18 +36,17 @@ body {
   .legend {
     display: flex;
     gap: 1em;
-    margin-top: 10px;
+    margin-top: 1em;
     font-size: 14px;
   }
   
-  /* Each legend swatch is a small colored block with text */
+  /* Each legend swatch: small colored area with text */
   .legend div {
     display: flex;
     align-items: center;
-    gap: 4px;
+    color: white;
     padding: 4px 8px;
     border-radius: 4px;
-    color: white;
   }
   
   .departures {

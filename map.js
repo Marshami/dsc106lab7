@@ -1,21 +1,34 @@
-import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm";
+///////////////////////////////////
+// 1) Import ES Modules
+///////////////////////////////////
+import mapboxgl from 'https://cdn.jsdelivr.net/npm/mapbox-gl@2.15.0/+esm';
+import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm';
 
-mapboxgl.accessToken = 'pk.eyJ1Ijoia2VzZW5udW1hIiwiYSI6ImNtN3d3ZTM1eTBhY2MybW9xczNycWFncmwifQ.XARtRgsunDu3KIil4VoCng';
+///////////////////////////////////
+// 2) Initialize Mapbox
+///////////////////////////////////
+//  !!! REPLACE WITH YOUR REAL TOKEN FROM account.mapbox.com !!!
+mapboxgl.accessToken = 'pk.YOUR_MAPBOX_ACCESS_TOKEN';
 
 const map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v12',
-  center: [-71.09415, 42.36027],
-  zoom: 12,
+  center: [-71.09415, 42.36027], // Boston
+  zoom: 12
 });
 
-map.on('load', async () => {
-  // Fetch and load bike lane data
+// We'll add data & layers after map loads
+map.on('load', onMapLoad);
+
+///////////////////////////////////
+// 3) Data & Visualization Setup
+///////////////////////////////////
+async function onMapLoad() {
+  // A) Add Boston bike lanes
   map.addSource('boston_route', {
     type: 'geojson',
     data: 'https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::existing-bike-network-2022.geojson'
   });
-
   map.addLayer({
     id: 'bike-lanes',
     type: 'line',
@@ -23,83 +36,74 @@ map.on('load', async () => {
     paint: {
       'line-color': 'green',
       'line-width': 3,
-      'line-opacity': 0.4,
-    },
+      'line-opacity': 0.4
+    }
   });
 
-  // Fetch and load BlueBikes station data
+  // B) Load Station Data
+  //    We'll place them as SVG circles on top
   const stationData = await d3.json('https://dsc106.com/labs/lab07/data/bluebikes-stations.json');
-  const stations = stationData.data.stations;
+  let stations = stationData.data.stations;
 
-  // Create SVG overlay for station markers
+  // Create an <svg> selection on #map
   const svg = d3.select('#map').select('svg');
+
+  // Append circles for each station
   const circles = svg.selectAll('circle')
-    .data(stations)
+    .data(stations, d => d.short_name) // key by short_name
     .enter()
     .append('circle')
     .attr('r', 5)
     .attr('fill', 'steelblue')
     .attr('stroke', 'white')
     .attr('stroke-width', 1)
-    .attr('opacity', 0.8);
+    .attr('fill-opacity', 0.8);
 
-  // Helper function to convert latitude/longitude to pixel coordinates
-  function getCoords(station) {
-    const point = new mapboxgl.LngLat(+station.lon, +station.lat);
-    const { x, y } = map.project(point);
-    return { cx: x, cy: y };
+  // Helper: Convert station lon/lat to map pixel coords
+  function projectCoords(station) {
+    const point = new mapboxgl.LngLat(+station.Long, +station.Lat);
+    const pixel = map.project(point);
+    return [pixel.x, pixel.y];
   }
 
-  // Update positions of station markers based on map panning and zooming
+  // Keep circles in sync with map panning/zoom
   function updatePositions() {
-    circles.attr('cx', d => getCoords(d).cx)
-           .attr('cy', d => getCoords(d).cy);
+    circles.attr('cx', d => projectCoords(d)[0])
+           .attr('cy', d => projectCoords(d)[1]);
   }
-
   updatePositions();
   map.on('move', updatePositions);
   map.on('zoom', updatePositions);
   map.on('resize', updatePositions);
   map.on('moveend', updatePositions);
 
-  // Add the time filtering feature
+  ///////////////////////////////////
+  // 4) Interactive Time Filter
+  ///////////////////////////////////
   const timeSlider = document.getElementById('time-slider');
   const selectedTime = document.getElementById('selected-time');
   const anyTimeLabel = document.getElementById('any-time');
 
-  timeSlider.addEventListener('input', updateTimeDisplay);
-  updateTimeDisplay();
+  timeSlider.addEventListener('input', onSliderChange);
+  onSliderChange(); // initialize display
 
-  function updateTimeDisplay() {
-    let timeFilter = Number(timeSlider.value);
-    if (timeFilter === -1) {
+  function onSliderChange() {
+    const val = +timeSlider.value;
+    if (val === -1) {
       selectedTime.textContent = '';
-      anyTimeLabel.style.display = 'block';
+      anyTimeLabel.style.display = 'inline';
     } else {
-      selectedTime.textContent = formatTime(timeFilter);
+      selectedTime.textContent = formatTime(val);
       anyTimeLabel.style.display = 'none';
     }
-    updateScatterPlot(timeFilter);
+    // We could re-filter data or re-scale station circles based on time, etc.
+    // (For demonstration, let's just console.log for now.)
+    console.log('Time filter changed:', val);
   }
 
+  // Helper to convert minutes-since-midnight to HH:MM AM/PM
   function formatTime(minutes) {
-    const date = new Date(0, 0, 0, 0, minutes);
-    return date.toLocaleString('en-US', { timeStyle: 'short' });
+    const date = new Date(0, 0, 0, 0, minutes); // dummy date
+    return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   }
-
-  function updateScatterPlot(timeFilter) {
-    const filteredStations = computeStationTraffic(stations, timeFilter);
-    circles.data(filteredStations)
-           .join('circle')
-           .attr('r', d => radiusScale(d.totalTraffic));
-  }
-
-  // Compute traffic data for the stations based on filtered time
-  function computeStationTraffic(stations, timeFilter) {
-    // Assume the traffic data is already available or parsed
-    return stations.map(station => {
-      station.totalTraffic = Math.random() * 100; // Example: Replace with actual traffic data
-      return station;
-    });
-  }
-});
+}

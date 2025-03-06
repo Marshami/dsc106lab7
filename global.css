@@ -1,34 +1,51 @@
-body {
+/* Make sure the map container has non-zero size */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+  
+  body {
     font: 100%/1.5 system-ui, sans-serif;
     display: flex;
     flex-flow: column;
     max-width: 80em;
-    min-height: 100vh;
-    box-sizing: border-box;
     margin: auto;
     padding: 1em;
+    box-sizing: border-box;
   }
   
-  #map {
-    width: 100%;
-    height: 100%;
-  }
-  
+  /* Header layout: "Bikewatching" on the left, slider/time on the right */
   header {
     display: flex;
-    justify-content: space-between;
+    flex-direction: row;
     align-items: baseline;
+    gap: 1em;
   }
   
-  input[type="range"] {
-    width: 200px;
+  /* Let the map fill what's left of the viewport */
+  #map {
+    position: relative; 
+    width: 100%;
+    flex: 1; /* let it expand to fill remaining vertical space */
+    margin-top: 1em;
+    border: 1px solid #ccc;
   }
   
-  time {
-    font-weight: bold;
+  /* Our overlay SVG is absolutely positioned to match map panning */
+  #map svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0; 
+    bottom: 0;
+    pointer-events: none; /* let mouse drag the map, not the SVG */
   }
   
-  em {
-    font-style: italic;
+  /* Hide or style the time label if no filter is selected */
+  #any-time {
     color: gray;
-  }  
+    font-style: italic;
+  }
+  
+  /* You can style the slider/time elements further if you like */  
